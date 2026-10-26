@@ -1,0 +1,56 @@
+name: Windows installer
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build installer
+        shell: pwsh
+        run: ./build.ps1
+      - name: Test audio processor
+        run: .venv/Scripts/python -m unittest discover -s tests -v
+      - name: Test interface
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: .venv/Scripts/python tests/smoke_ui.py
+      - name: Test installer
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'MicStudio-test'
+          $setup = Start-Process release/MicStudio-Setup-0.1.0.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$target" -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw "Installer exited $($setup.ExitCode)" }
+          if (!(Test-Path "$target/MicStudio.exe")) { throw 'Missing installed application' }
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          $app = Start-Process "$target/MicStudio.exe" -PassThru
+          Start-Sleep -Seconds 8
+          if ($app.HasExited) { throw "Application exited early: $($app.ExitCode)" }
+          Stop-Process -Id $app.Id
+          $uninstall = Start-Process "$target/unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { throw 'Uninstall failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MicStudio-Windows
+          path: release/*.exe
+      - name: Publish development installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release view v0.1.0 --repo $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE -ne 0) {
+            gh release create v0.1.0 --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --prerelease --title 'MicStudio 0.1.0 — Preview Windows' --notes-file RELEASE_NOTES.md
+            if ($LASTEXITCODE -ne 0) { throw 'Release creation failed' }
+          }
+          gh release upload v0.1.0 release/MicStudio-Setup-0.1.0.exe --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }
