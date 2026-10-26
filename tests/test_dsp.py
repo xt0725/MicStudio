@@ -82,7 +82,9 @@ class AudioTests(unittest.TestCase):
         try:
             rng=np.random.default_rng(42)
             outputs=[];inputs=[]
-            for _ in range(250):
+            # Allow 12 seconds of stationary noise for the recurrent noise
+            # estimate to settle; 2.5 s was too short for white noise.
+            for _ in range(1200):
                 x=rng.normal(0,.015,480).astype(np.float32);outputs.append(ai.process(x));inputs.append(x)
             self.assertTrue(np.isfinite(outputs).all())
             self.assertLess(dbfs(np.concatenate(outputs[-100:])),dbfs(np.concatenate(inputs[-100:]))-3)

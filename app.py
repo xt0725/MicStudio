@@ -165,7 +165,7 @@ class Window(QMainWindow):
             g=QGroupBox(title);f=QFormLayout(g);grid.addWidget(g,r,c);return f
         f=group('01 · Noise Clean AI',0,0)
         self.ai_check=self.check(f,'ai','Activer la réduction neuronale RNNoise');self.ai_check.setEnabled(self.ai is not None)
-        f.addRow(label('Modèle embarqué · local · sans compte' if self.ai else self.ai_error,'badge' if self.ai else 'muted'))
+        f.addRow(label('Modèle embarqué · local · laisse le bruit se stabiliser quelques secondes' if self.ai else self.ai_error,'badge' if self.ai else 'muted'))
         self.control(f,'ai_strength','Intensité (%)');self.control(f,'gain','Gain entrée (dB)')
         f=group('02 · Nettoyage de la voix',0,1)
         self.check(f,'highpass','Activer le coupe-bas');self.control(f,'highpass_hz','Fréquence (Hz)');self.control(f,'deesser','Dé-esseur (%)')

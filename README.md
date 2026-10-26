@@ -46,7 +46,7 @@ Le moteur Python utilise des blocs de 10 ms, des files bornées et une légère 
 ## Compilation Windows x64
 Le workflow GitHub Actions compile RNNoise puis l’application, teste le DSP et l’IA native, ouvre les sept onglets, installe/lance/désinstalle le produit, et publie une préversion avec SHA-256. Le binaire n’est pas signé.
 
-Pour compiler localement : Python 3.12 x64, CMake, Visual Studio C++ et Inno Setup 6 ; récupérer RNNoise à la révision ci-dessus dans `third_party/rnnoise`, exécuter `cmake -S native -B native/build -A x64`, `cmake --build native/build --config Release`, copier `native/build/Release/rnnoise.dll` dans `native/`, puis `build.ps1`.
+Pour compiler localement : Python 3.12 x64, CMake, Visual Studio C++ avec ClangCL/LLVM et Inno Setup 6 ; récupérer RNNoise à la révision ci-dessus dans `third_party/rnnoise`, exécuter `cmake -S native -B native/build -A x64 -T ClangCL`, `cmake --build native/build --config Release`, copier `native/build/Release/rnnoise.dll` dans `native/`, puis `build.ps1`.
 
 `python -m unittest discover -s tests -v` ; `QT_QPA_PLATFORM=offscreen python tests/smoke_ui.py` (syntaxe d’environnement à adapter à PowerShell). Avec `MICSTUDIO_REQUIRE_AI=1`, les tests échouent si le module natif est absent. Les essais synthétiques ne remplacent pas les tests sur un vrai micro, casque Bluetooth et client vocal.
 
