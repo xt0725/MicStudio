@@ -25,7 +25,7 @@ jobs:
       - name: Compile native neural denoiser
         shell: pwsh
         run: |
-          cmake -S native -B native/build -A x64
+          cmake -S native -B native/build -A x64 -T ClangCL
           if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
           cmake --build native/build --config Release
           if ($LASTEXITCODE -ne 0) { throw 'RNNoise build failed' }
