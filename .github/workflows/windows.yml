@@ -8,11 +8,30 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      MICSTUDIO_REQUIRE_AI: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Checkout pinned RNNoise with embedded model
+        uses: actions/checkout@v4
+        with:
+          repository: xiph/rnnoise
+          ref: cdf196b1e9de2f8ff1003328ebf9a4316477429d
+          path: third_party/rnnoise
+      - name: Compile native neural denoiser
+        shell: pwsh
+        run: |
+          cmake -S native -B native/build -A x64
+          if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
+          cmake --build native/build --config Release
+          if ($LASTEXITCODE -ne 0) { throw 'RNNoise build failed' }
+          Copy-Item native/build/Release/rnnoise.dll native/rnnoise.dll
+          New-Item -ItemType Directory -Force licenses | Out-Null
+          Copy-Item third_party/rnnoise/COPYING licenses/RNNoise.txt
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
       - name: Build installer
@@ -28,7 +47,7 @@ jobs:
         shell: pwsh
         run: |
           $target = Join-Path $env:RUNNER_TEMP 'MicStudio-test'
-          $setup = Start-Process release/MicStudio-Setup-0.1.0.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$target" -Wait -PassThru
+          $setup = Start-Process release/MicStudio-Setup-0.2.0.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$target" -Wait -PassThru
           if ($setup.ExitCode -ne 0) { throw "Installer exited $($setup.ExitCode)" }
           if (!(Test-Path "$target/MicStudio.exe")) { throw 'Missing installed application' }
           $env:QT_QPA_PLATFORM = 'offscreen'
@@ -38,19 +57,27 @@ jobs:
           Stop-Process -Id $app.Id
           $uninstall = Start-Process "$target/unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait -PassThru
           if ($uninstall.ExitCode -ne 0) { throw 'Uninstall failed' }
+      - name: Hash installer
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash release/MicStudio-Setup-0.2.0.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  MicStudio-Setup-0.2.0.exe" | Set-Content release/MicStudio-Setup-0.2.0.exe.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: MicStudio-Windows
-          path: release/*.exe
+          path: |
+            release/*.exe
+            qa/*.png
+            release/*.sha256
       - name: Publish development installer
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release view v0.1.0 --repo $env:GITHUB_REPOSITORY
+          gh release view v0.2.0 --repo $env:GITHUB_REPOSITORY
           if ($LASTEXITCODE -ne 0) {
-            gh release create v0.1.0 --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --prerelease --title 'MicStudio 0.1.0 — Preview Windows' --notes-file RELEASE_NOTES.md
+            gh release create v0.2.0 --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --prerelease --title 'MicStudio 0.2.0 — Preview Windows' --notes-file RELEASE_NOTES.md
             if ($LASTEXITCODE -ne 0) { throw 'Release creation failed' }
           }
-          gh release upload v0.1.0 release/MicStudio-Setup-0.1.0.exe --repo $env:GITHUB_REPOSITORY --clobber
+          gh release upload v0.2.0 release/MicStudio-Setup-0.2.0.exe release/MicStudio-Setup-0.2.0.exe.sha256 --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }

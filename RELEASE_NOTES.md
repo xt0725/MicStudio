@@ -1,7 +1,16 @@
-Première version Windows de MicStudio, orientée vocal gaming, Discord et Roblox.
+## MicStudio 0.2 — refonte studio vocal
+Télécharger **MicStudio-Setup-0.2.0.exe**. Python n’est pas requis.
 
-Télécharger **MicStudio-Setup-0.1.0.exe** ci-dessous. Python n’est pas nécessaire sur le PC utilisateur.
+- Sept onglets : Mixeur, Studio micro, Écoute & test, Routage, Périphériques, Profils, Paramètres.
+- Réduction neuronale **RNNoise réellement embarquée** et réglable, traitement local.
+- Écoute du micro au casque avec vrais vu-mètres, forme d’onde et spectre.
+- Quatre sources : micro, deux auxiliaires et lecteur audio ; deux bus A/B, mute, solo, volumes et routage.
+- EQ huit bandes, coupe-bas, dé-esseur, gate avec timings, compresseur avec timings et compensation, limiteur.
+- Test WAV brut/traité, profils JSON, sept presets, mode zone de notification et diagnostic.
+- Liste WASAPI sans doublons MME/DirectSound et filtre Bluetooth par nom.
 
-Gain, coupe-bas, graves, présence, noise gate, compression, limiteur, mute, profils et import/export de réglages.
+### Utilisation
+Choisir micro et casque dans Mixeur, puis **Écouter maintenant**. Pour les autres applications : un câble virtuel externe est nécessaire ; B = CABLE Input, micro Discord/Roblox = CABLE Output.
 
-Version de développement : RNNoise n’est pas embarqué, le bouton IA est désactivé. Un câble audio virtuel externe est nécessaire pour transmettre le résultat aux applications. Pas de mixage par application ni de suppression d’écho. Installateur non signé ; les essais automatiques ne remplacent pas un essai avec votre matériel audio.
+### Limites explicites
+Aucun pilote virtuel MicStudio n’est fourni : aucune entrée/sortie Windows n’est créée. Le filtre Bluetooth dépend des noms de périphériques. AUX capture des entrées existantes, pas les processus automatiquement. L’audio est mixé en mono et dupliqué en stéréo. ClearCast est une technologie SteelSeries et n’est pas inclus. Installateur non signé ; les tests automatiques ne valident pas la qualité ou la compatibilité sur chaque matériel réel.

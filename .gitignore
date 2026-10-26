@@ -5,3 +5,9 @@ build/
 dist/
 release/
 *.spec
+third_party/
+native/build/
+native/*.dll
+native/*.so
+licenses/
+qa/
