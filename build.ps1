@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
-py -3 -m venv .venv
+python -m venv .venv
 if ($LASTEXITCODE) { throw 'Python 3 est requis.' }
 & .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 if ($LASTEXITCODE) { throw 'Installation des dépendances impossible.' }
@@ -11,4 +11,4 @@ if ($LASTEXITCODE) { throw 'Compilation impossible.' }
 $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
 if (!(Test-Path $iscc)) { throw 'Installez Inno Setup 6, puis relancez build.ps1.' }
 & $iscc installer\MicStudio.iss
-if ($LASTEXITCODE) { throw 'Création de l’installateur impossible.' }
+if ($LASTEXITCODE) { throw 'Creation installateur impossible.' }
